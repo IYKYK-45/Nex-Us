@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'splash_screen.dart';
-import 'auth_screen.dart';
-import 'feed.dart';
+import 'screens/splash/splash_screen.dart';
+import 'screens/auth/auth_screen.dart';
+import 'screens/feed/feed.dart';
 
 void main() {
   // Ensure Flutter bindings are initialized for system-level changes

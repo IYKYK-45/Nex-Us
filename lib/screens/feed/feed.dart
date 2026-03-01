@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// [FeedScreen] - A high-performance, reactive campus social dashboard.
-/// This version supports local assets, dynamic post creation, and interactive modals.
+/// FeedScreen - The main navigation hub for the app.
+/// Uses an IndexedStack to keep all screens alive in memory,
+/// enabling instant switching between tabs without losing state.
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
 
@@ -10,17 +11,76 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  // --- ELITE DATA ARCHITECTURE ---
-  // This list simulates a database. We use 'isLocal' to tell Flutter
-  // whether to look in your 'assets/images' folder or the internet.
+  // Tracks the currently active tab index
+  int _activeTab = 0;
+
+  // Define all screens here. FeedContent contains the actual feed UI.
+  final List<Widget> _screens = [
+    const FeedContent(), // Feed body moved into its own widget
+    const PlaceholderScreen(title: "Reels"),
+    const PlaceholderScreen(title: "Discover"),
+    const GroupsScreen(),
+    const PlaceholderScreen(title: "Events"),
+    const PlaceholderScreen(title: "Chat Screen"),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    const Color brandPurple = Color(0xFF6B4EE6);
+
+    return Scaffold(
+      // IndexedStack keeps all screens alive in the background
+      body: IndexedStack(
+        index: _activeTab,
+        children: _screens,
+      ),
+      bottomNavigationBar: _buildDynamicBottomNav(brandPurple),
+    );
+  }
+
+  /// Bottom Navigation Bar - switches between tabs.
+  /// Each tab corresponds to a screen in _screens.
+  Widget _buildDynamicBottomNav(Color accent) {
+    return BottomNavigationBar(
+      currentIndex: _activeTab,
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: accent,
+      unselectedItemColor: Colors.grey.shade500,
+      onTap: (index) {
+        setState(() => _activeTab = index);
+      },
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: "Feed"),
+        BottomNavigationBarItem(icon: Icon(Icons.movie_outlined), label: "Reels"),
+        BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: "Discover"),
+        BottomNavigationBarItem(icon: Icon(Icons.book_outlined), label: "Groups"),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: "Events"),
+        BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: "Chat"),
+      ],
+    );
+  }
+}
+
+/// FeedContent - Contains the actual feed UI.
+/// This was previously inside FeedScreen, now separated for clarity.
+class FeedContent extends StatefulWidget {
+  const FeedContent({super.key});
+
+  @override
+  State<FeedContent> createState() => _FeedContentState();
+}
+
+class _FeedContentState extends State<FeedContent> {
+  // Mock database of posts
   final List<Map<String, dynamic>> _posts = [
     {
       'id': '1',
       'name': 'Sarah Johnson',
       'role': 'Student',
-      'content': 'Just finished my first group project for CS-101! Our team did an amazing job on the React app. Special thanks to the study group for the help! 🚀',
-      'image': 'assets/images/images.jpeg', // Path to your local image
-      'isLocal': true, // Logic gate for local asset rendering
+      'content':
+      'Just finished my first group project for CS-101! Our team did an amazing job on the React app. 🚀',
+      'image': 'assets/images/images.jpeg',
+      'isLocal': true,
       'likes': 1200,
       'isLiked': false,
       'tags': ['#CS101', '#React'],
@@ -32,19 +92,16 @@ class _FeedScreenState extends State<FeedScreen> {
     }
   ];
 
-  // User Session Data
+  // Current user session data
   final String _currentUser = "Garvit Gupta";
-  final String _userAvatar = "https://via.placeholder.com/150/6B4EE6/FFFFFF?text=GG";
+  final String _userAvatar =
+      "https://via.placeholder.com/150/6B4EE6/FFFFFF?text=GG";
 
-  // Controllers for dynamic input handling
+  // Controllers
   final TextEditingController _updateController = TextEditingController();
   final List<String> _currentTags = [];
-  int _activeTab = 0;
 
-  // --- CORE LOGIC & INTERACTION HANDLERS ---
-
-  /// Handles the "Post" button logic.
-  /// Creates a new data object and injects it into the top of the feed.
+  /// Handles post creation
   void _handlePost() {
     if (_updateController.text.isNotEmpty) {
       setState(() {
@@ -57,9 +114,9 @@ class _FeedScreenState extends State<FeedScreen> {
           'isLocal': false,
           'likes': 0,
           'isLiked': false,
-          'tags': List<String>.from(_currentTags), // Deep copy for data persistence
+          'tags': List<String>.from(_currentTags),
           'comments': [],
-          'isOwner': true, // Enables the delete button for this user
+          'isOwner': true,
         });
         _updateController.clear();
         _currentTags.clear();
@@ -67,7 +124,7 @@ class _FeedScreenState extends State<FeedScreen> {
     }
   }
 
-  /// Safety Protocol: Verifies intent before permanent data deletion.
+  /// Confirm delete dialog
   void _confirmDelete(int index) {
     showDialog(
       context: context,
@@ -89,22 +146,33 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
-  /// Dynamic Modal: Displays and manages the comment stream.
+  /// Comment popup modal
   void _showCommentPopup(int index) {
     TextEditingController commentCtrl = TextEditingController();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       builder: (context) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 20, right: 20, top: 20),
+        padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+            Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10))),
             const SizedBox(height: 15),
-            const Text("Comments", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const Text("Comments",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             const Divider(),
             SizedBox(
               height: 250,
@@ -113,8 +181,11 @@ class _FeedScreenState extends State<FeedScreen> {
                 itemBuilder: (context, i) {
                   final comment = _posts[index]['comments'][i];
                   return ListTile(
-                    leading: const CircleAvatar(radius: 15, backgroundColor: Color(0xFF6B4EE6)),
-                    title: Text(comment['user'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    leading: const CircleAvatar(
+                        radius: 15, backgroundColor: Color(0xFF6B4EE6)),
+                    title: Text(comment['user'],
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 14)),
                     subtitle: Text(comment['text']),
                   );
                 },
@@ -140,18 +211,18 @@ class _FeedScreenState extends State<FeedScreen> {
           const SizedBox(height: 16),
           _buildCreationCard(brandPurple),
           const SizedBox(height: 20),
-          // Loop through the mock database to generate dynamic post widgets
-          ..._posts.asMap().entries.map((entry) => _buildPostCard(entry.key, brandPurple)).toList(),
+          ..._posts
+              .asMap()
+              .entries
+              .map((entry) => _buildPostCard(entry.key, brandPurple))
+              .toList(),
           const SizedBox(height: 100),
         ],
       ),
-      bottomNavigationBar: _buildDynamicBottomNav(brandPurple),
     );
   }
 
-  // --- UI ATOMIC WIDGETS ---
-
-  /// Professional AppBar with identity and notification logic.
+  /// AppBar
   PreferredSizeWidget _buildMncAppBar(Color brandColor) {
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -160,12 +231,16 @@ class _FeedScreenState extends State<FeedScreen> {
         padding: const EdgeInsets.all(8.0),
         child: CircleAvatar(
           backgroundColor: brandColor,
-          child: const Text('N', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          child: const Text('N',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ),
-      title: Text('CampusSphere', style: TextStyle(color: brandColor, fontWeight: FontWeight.bold)),
+      title: Text('CampusSphere',
+          style: TextStyle(color: brandColor, fontWeight: FontWeight.bold)),
       actions: [
-        IconButton(icon: const Icon(Icons.notifications_none, color: Colors.black), onPressed: () {}),
+        IconButton(
+            icon: const Icon(Icons.notifications_none, color: Colors.black),
+            onPressed: () {}),
         Padding(
           padding: const EdgeInsets.only(right: 12),
           child: CircleAvatar(radius: 18, backgroundImage: NetworkImage(_userAvatar)),
@@ -174,15 +249,21 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
-  /// The interactive "Share an update" input engine.
+  /// Post creation card - allows the user to share updates dynamically.
   Widget _buildCreationCard(Color accent) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Share an update", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+          const Text(
+            "Share an update",
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: _updateController,
@@ -191,23 +272,49 @@ class _FeedScreenState extends State<FeedScreen> {
               hintText: "What's happening on campus?",
               fillColor: const Color(0xFFF8F9FA),
               filled: true,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
             ),
           ),
           if (_currentTags.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Wrap(spacing: 8, children: _currentTags.map((t) => Text(t, style: TextStyle(color: accent, fontWeight: FontWeight.bold))).toList()),
+              child: Wrap(
+                spacing: 8,
+                children: _currentTags
+                    .map((t) => Text(
+                  t,
+                  style: TextStyle(
+                    color: accent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ))
+                    .toList(),
+              ),
             ),
           const SizedBox(height: 12),
           Row(
             children: [
-              IconButton(onPressed: () {}, icon: const Icon(Icons.image_outlined, color: Colors.grey)),
-              TextButton(onPressed: _showTagPopup, child: const Text("Tag Community")),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.image_outlined, color: Colors.grey),
+              ),
+              TextButton(
+                onPressed: _showTagPopup,
+                child: const Text("Tag Community"),
+              ),
               const Spacer(),
               ElevatedButton(
                 onPressed: _handlePost,
-                style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: accent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 child: const Text("Post"),
               ),
             ],
@@ -216,6 +323,8 @@ class _FeedScreenState extends State<FeedScreen> {
       ),
     );
   }
+
+
 
   /// The Post Card Widget: Handles dynamic image rendering (Local vs Network).
   Widget _buildPostCard(int index, Color accent) {
@@ -248,10 +357,15 @@ class _FeedScreenState extends State<FeedScreen> {
           if (post['tags'].isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: Wrap(spacing: 8, children: post['tags'].map<Widget>((t) => Text(t, style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 13))).toList()),
+              child: Wrap(
+                spacing: 8,
+                children: post['tags']
+                    .map<Widget>((t) => Text(t, style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 13)))
+                    .toList(),
+              ),
             ),
 
-          // --- MNC-GRADE IMAGE RENDERING LOGIC ---
+          // Image rendering logic
           if (post['image'] != null)
             Padding(
               padding: const EdgeInsets.only(top: 12),
@@ -280,23 +394,29 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
-  // --- REUSABLE MICRO-WIDGETS ---
-
+  /// Like button widget
   Widget _buildLikeButton(Map<String, dynamic> post) {
     return TextButton.icon(
       onPressed: () => setState(() {
         post['isLiked'] = !post['isLiked'];
         post['likes'] += post['isLiked'] ? 1 : -1;
       }),
-      icon: Icon(post['isLiked'] ? Icons.favorite : Icons.favorite_border, color: post['isLiked'] ? Colors.red : Colors.grey),
+      icon: Icon(post['isLiked'] ? Icons.favorite : Icons.favorite_border,
+          color: post['isLiked'] ? Colors.red : Colors.grey),
       label: Text("${post['likes']}", style: const TextStyle(color: Colors.grey)),
     );
   }
 
+  /// Comment input field widget
   Widget _buildCommentInputField(TextEditingController ctrl, int index) {
     return Row(
       children: [
-        Expanded(child: TextField(controller: ctrl, decoration: const InputDecoration(hintText: "Write a comment...", border: InputBorder.none))),
+        Expanded(
+          child: TextField(
+            controller: ctrl,
+            decoration: const InputDecoration(hintText: "Write a comment...", border: InputBorder.none),
+          ),
+        ),
         IconButton(
           icon: const Icon(Icons.send, color: Color(0xFF6B4EE6)),
           onPressed: () {
@@ -310,6 +430,7 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
+  /// Tag popup dialog
   void _showTagPopup() {
     TextEditingController tagCtrl = TextEditingController();
     showDialog(
@@ -319,37 +440,44 @@ class _FeedScreenState extends State<FeedScreen> {
         content: TextField(controller: tagCtrl, decoration: const InputDecoration(hintText: "Community Name")),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-          ElevatedButton(onPressed: () {
-            if (tagCtrl.text.isNotEmpty) {
-              setState(() => _currentTags.add("#${tagCtrl.text.trim()}"));
-              Navigator.pop(context);
-            }
-          }, child: const Text("Add")),
+          ElevatedButton(
+            onPressed: () {
+              if (tagCtrl.text.isNotEmpty) {
+                setState(() => _currentTags.add("#${tagCtrl.text.trim()}"));
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Add"),
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildDynamicBottomNav(Color accent) {
-    return BottomNavigationBar(
-      currentIndex: _activeTab,
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: accent,
-      unselectedItemColor: Colors.grey.shade500,
-      onTap: (index) {
-        if (index != 0) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Module integration pending...")));
-        }
-        setState(() => _activeTab = index);
-      },
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: "Feed"),
-        BottomNavigationBarItem(icon: Icon(Icons.movie_outlined), label: "Reels"),
-        BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: "Discover"),
-        BottomNavigationBarItem(icon: Icon(Icons.book_outlined), label: "Groups"),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: "Events"),
-        BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: "Chat"),
-      ],
+/// PlaceholderScreen - Used for modules not yet implemented.
+class PlaceholderScreen extends StatelessWidget {
+  final String title;
+  const PlaceholderScreen({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+    );
+  }
+}
+
+/// GroupsScreen - Stub for Groups module.
+/// Later this will be replaced with actual group functionality.
+class GroupsScreen extends StatelessWidget {
+  const GroupsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text("Groups Module Coming Soon",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
     );
   }
 }
