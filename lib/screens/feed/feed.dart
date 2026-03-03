@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:nex_us/screens/reels/reels_screen.dart';
 
 /// FeedScreen - The main navigation hub for the app.
-/// Uses an IndexedStack to keep all screens alive in memory,
-/// enabling instant switching between tabs without losing state.
+/// Uses conditional rendering so Reels only builds when selected.
+/// This prevents videos from auto-playing at login and stops them when leaving.
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
 
@@ -12,42 +13,52 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   // Tracks the currently active tab index
-  int _activeTab = 0;
-
-  // Define all screens here. FeedContent contains the actual feed UI.
-  final List<Widget> _screens = [
-    const FeedContent(), // Feed body moved into its own widget
-    const PlaceholderScreen(title: "Reels"),
-    const PlaceholderScreen(title: "Discover"),
-    const GroupsScreen(),
-    const PlaceholderScreen(title: "Events"),
-    const PlaceholderScreen(title: "Chat Screen"),
-  ];
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     const Color brandPurple = Color(0xFF6B4EE6);
 
+    // Build only the selected screen
+    Widget currentScreen;
+    switch (_selectedIndex) {
+      case 0:
+        currentScreen = const FeedContent();
+        break;
+      case 1:
+        currentScreen = const ReelsScreen();
+        break;
+      case 2:
+        currentScreen = const PlaceholderScreen(title: "Discover");
+        break;
+      case 3:
+        currentScreen = const GroupsScreen();
+        break;
+      case 4:
+        currentScreen = const PlaceholderScreen(title: "Events");
+        break;
+      case 5:
+        currentScreen = const PlaceholderScreen(title: "Chat Screen");
+        break;
+      default:
+        currentScreen = const FeedContent();
+    }
+
     return Scaffold(
-      // IndexedStack keeps all screens alive in the background
-      body: IndexedStack(
-        index: _activeTab,
-        children: _screens,
-      ),
+      body: currentScreen,
       bottomNavigationBar: _buildDynamicBottomNav(brandPurple),
     );
   }
 
   /// Bottom Navigation Bar - switches between tabs.
-  /// Each tab corresponds to a screen in _screens.
   Widget _buildDynamicBottomNav(Color accent) {
     return BottomNavigationBar(
-      currentIndex: _activeTab,
+      currentIndex: _selectedIndex,
       type: BottomNavigationBarType.fixed,
       selectedItemColor: accent,
       unselectedItemColor: Colors.grey.shade500,
       onTap: (index) {
-        setState(() => _activeTab = index);
+        setState(() => _selectedIndex = index);
       },
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: "Feed"),
@@ -62,7 +73,6 @@ class _FeedScreenState extends State<FeedScreen> {
 }
 
 /// FeedContent - Contains the actual feed UI.
-/// This was previously inside FeedScreen, now separated for clarity.
 class FeedContent extends StatefulWidget {
   const FeedContent({super.key});
 
