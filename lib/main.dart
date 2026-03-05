@@ -4,6 +4,7 @@ import 'screens/splash/splash_screen.dart';
 import 'screens/auth/auth_screen.dart';
 import 'screens/feed/feed.dart';
 
+
 void main() {
   // Ensure Flutter bindings are initialized for system-level changes
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nex_us/screens/reels/reels_screen.dart';
+import 'package:nex_us/screens/chat/chat_screen.dart';
 
 /// FeedScreen - The main navigation hub for the app.
 /// Uses conditional rendering so Reels only builds when selected.
@@ -12,43 +13,31 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  // Tracks the currently active tab index
+  final GlobalKey<ReelsScreenState> _reelsKey = GlobalKey<ReelsScreenState>();
   int _selectedIndex = 0;
+
+  final List<Widget?> _screens = [
+    const FeedContent(),
+    null,
+    const PlaceholderScreen(title: "Discover"),
+    const GroupsScreen(),
+    const PlaceholderScreen(title: "Events"),
+    const MessagesPage(),
+  ];
 
   @override
   Widget build(BuildContext context) {
     const Color brandPurple = Color(0xFF6B4EE6);
 
-    // Build only the selected screen
-    Widget currentScreen;
-    switch (_selectedIndex) {
-      case 0:
-        currentScreen = const FeedContent();
-        break;
-      case 1:
-        currentScreen = const ReelsScreen();
-        break;
-      case 2:
-        currentScreen = const PlaceholderScreen(title: "Discover");
-        break;
-      case 3:
-        currentScreen = const GroupsScreen();
-        break;
-      case 4:
-        currentScreen = const PlaceholderScreen(title: "Events");
-        break;
-      case 5:
-        currentScreen = const PlaceholderScreen(title: "Chat Screen");
-        break;
-      default:
-        currentScreen = const FeedContent();
-    }
-
     return Scaffold(
-      body: currentScreen,
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens.map((screen) => screen ?? const SizedBox()).toList(),
+      ),
       bottomNavigationBar: _buildDynamicBottomNav(brandPurple),
     );
   }
+
 
   /// Bottom Navigation Bar - switches between tabs.
   Widget _buildDynamicBottomNav(Color accent) {
@@ -57,16 +46,42 @@ class _FeedScreenState extends State<FeedScreen> {
       type: BottomNavigationBarType.fixed,
       selectedItemColor: accent,
       unselectedItemColor: Colors.grey.shade500,
-      onTap: (index) {
-        setState(() => _selectedIndex = index);
-      },
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: "Feed"),
-        BottomNavigationBarItem(icon: Icon(Icons.movie_outlined), label: "Reels"),
-        BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: "Discover"),
-        BottomNavigationBarItem(icon: Icon(Icons.book_outlined), label: "Groups"),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: "Events"),
-        BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: "Chat"),
+        onTap: (index) {
+          // If leaving Reels tab
+          if (_selectedIndex == 1 && index != 1) {
+            _reelsKey.currentState?.pauseAllVideos();
+          }
+
+          setState(() {
+            _selectedIndex = index;
+
+            // Lazy init ReelsScreen only when tapped
+            if (index == 1 && _screens[1] == null) {
+              _screens[1] = ReelsScreen(key: _reelsKey);
+            }
+          });
+
+          // If returning to Reels tab
+          if (index == 1) {
+            _reelsKey.currentState?.resumeCurrentVideo();
+          }
+        },
+
+
+
+        items: const [
+        BottomNavigationBarItem(
+            icon: Icon(Icons.grid_view_rounded), label: "Feed"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.movie_outlined), label: "Reels"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.explore_outlined), label: "Discover"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.book_outlined), label: "Groups"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today_outlined), label: "Events"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline), label: "Chat"),
       ],
     );
   }
@@ -80,7 +95,11 @@ class FeedContent extends StatefulWidget {
   State<FeedContent> createState() => _FeedContentState();
 }
 
-class _FeedContentState extends State<FeedContent> {
+class _FeedContentState extends State<FeedContent> with AutomaticKeepAliveClientMixin{
+  @override
+  bool get wantKeepAlive => true;
+
+
   // Mock database of posts
   final List<Map<String, dynamic>> _posts = [
     {
@@ -210,6 +229,7 @@ class _FeedContentState extends State<FeedContent> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     const Color brandPurple = Color(0xFF6B4EE6);
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
