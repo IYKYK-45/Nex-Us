@@ -4,18 +4,33 @@ import 'package:flutter/material.dart';
 class ChatPage extends StatefulWidget {
   final String userName;
   final String avatar;
+  final List<Map<String, dynamic>> initialMessages;
+  final void Function(List<Map<String, dynamic>>) onMessagesUpdated;
 
-  const ChatPage({super.key, required this.userName, required this.avatar});
+
+
+  const ChatPage({
+    super.key,
+    required this.userName,
+    required this.avatar,
+    required this.initialMessages,
+    required this.onMessagesUpdated
+  });
 
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
-  final List<Map<String, dynamic>> _messages = [
-    {'text': 'Hey! How are you?', 'isMe': false, 'time': '10:30 AM'},
-    {'text': 'I’m good, just finished coding.', 'isMe': true, 'time': '10:31 AM'},
-  ];
+class _ChatPageState extends State<ChatPage>{
+
+  late List<Map<String, dynamic>> _messages;
+
+  @override
+  void initState() {
+    super.initState();
+    _messages = List.from(widget.initialMessages); // 👈 reuse passed messages
+  }
+
 
   final TextEditingController _controller = TextEditingController();
 
@@ -28,8 +43,10 @@ class _ChatPageState extends State<ChatPage> {
         'time': TimeOfDay.now().format(context),
       });
     });
+    widget.onMessagesUpdated(_messages); // 👈 update parent map
     _controller.clear();
   }
+
 
   @override
   Widget build(BuildContext context) {

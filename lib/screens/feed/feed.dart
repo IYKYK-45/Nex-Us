@@ -16,15 +16,6 @@ class _FeedScreenState extends State<FeedScreen> {
   final GlobalKey<ReelsScreenState> _reelsKey = GlobalKey<ReelsScreenState>();
   int _selectedIndex = 0;
 
-  final List<Widget?> _screens = [
-    const FeedContent(),
-    null,
-    const PlaceholderScreen(title: "Discover"),
-    const GroupsScreen(),
-    const PlaceholderScreen(title: "Events"),
-    const MessagesPage(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     const Color brandPurple = Color(0xFF6B4EE6);
@@ -32,12 +23,19 @@ class _FeedScreenState extends State<FeedScreen> {
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
-        children: _screens.map((screen) => screen ?? const SizedBox()).toList(),
+        children: [
+          const FeedContent(),
+          // 👇 ReelsScreen is always rebuilt with the latest tab state
+          ReelsScreen(key: _reelsKey, isTabActive: _selectedIndex == 1),
+          const PlaceholderScreen(title: "Discover"),
+          const GroupsScreen(),
+          const PlaceholderScreen(title: "Events"),
+          const MessagesPage(),
+        ],
       ),
       bottomNavigationBar: _buildDynamicBottomNav(brandPurple),
     );
   }
-
 
   /// Bottom Navigation Bar - switches between tabs.
   Widget _buildDynamicBottomNav(Color accent) {
@@ -46,30 +44,22 @@ class _FeedScreenState extends State<FeedScreen> {
       type: BottomNavigationBarType.fixed,
       selectedItemColor: accent,
       unselectedItemColor: Colors.grey.shade500,
-        onTap: (index) {
-          // If leaving Reels tab
-          if (_selectedIndex == 1 && index != 1) {
-            _reelsKey.currentState?.pauseAllVideos();
-          }
+      onTap: (index) {
+        // Pause Reels if leaving
+        if (_selectedIndex == 1 && index != 1) {
+          _reelsKey.currentState?.pauseAllVideos();
+        }
 
-          setState(() {
-            _selectedIndex = index;
+        setState(() {
+          _selectedIndex = index;
+        });
 
-            // Lazy init ReelsScreen only when tapped
-            if (index == 1 && _screens[1] == null) {
-              _screens[1] = ReelsScreen(key: _reelsKey);
-            }
-          });
-
-          // If returning to Reels tab
-          if (index == 1) {
-            _reelsKey.currentState?.resumeCurrentVideo();
-          }
-        },
-
-
-
-        items: const [
+        // Resume only if switching to Reels tab
+        if (index == 1) {
+          _reelsKey.currentState?.resumeCurrentVideo();
+        }
+      },
+      items: const [
         BottomNavigationBarItem(
             icon: Icon(Icons.grid_view_rounded), label: "Feed"),
         BottomNavigationBarItem(

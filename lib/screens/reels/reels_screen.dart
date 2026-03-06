@@ -51,7 +51,9 @@ List<Map<String, dynamic>> generateDummyReels(int count) {
 }
 
 class ReelsScreen extends StatefulWidget {
-  const ReelsScreen({super.key});
+  final bool isTabActive;
+  const ReelsScreen({super.key, required this.isTabActive});
+
 
   @override
   State<ReelsScreen> createState() => ReelsScreenState();
@@ -111,6 +113,7 @@ class ReelsScreenState extends State<ReelsScreen> with AutomaticKeepAliveClientM
           return ReelPlayer(
             reel: reel,
             isActive: _currentPage == index % _reels.length, // 👈 pass flag
+            isTabActive: widget.isTabActive,
             onLike: () {
               setState(() {
                 reel['isLiked'] = !reel['isLiked'];
@@ -207,6 +210,7 @@ class ReelsScreenState extends State<ReelsScreen> with AutomaticKeepAliveClientM
 class ReelPlayer extends StatefulWidget {
   final Map<String, dynamic> reel;
   final bool isActive;
+  final bool isTabActive;
   final VoidCallback onLike;
   final VoidCallback onComment;
   final VoidCallback onShare;
@@ -217,6 +221,7 @@ class ReelPlayer extends StatefulWidget {
     super.key,
     required this.reel,
     required this.isActive,
+    required this.isTabActive,
     required this.onLike,
     required this.onComment,
     required this.onShare,
@@ -238,7 +243,7 @@ class _ReelPlayerState extends State<ReelPlayer> with WidgetsBindingObserver {
     _controller = VideoPlayerController.asset(widget.reel['url'])
       ..initialize().then((_) {
         setState(() {});
-        if (widget.isActive) {
+        if (widget.isActive && widget.isTabActive) {
           _controller.play();
         }
         _controller.setLooping(true);
@@ -249,11 +254,12 @@ class _ReelPlayerState extends State<ReelPlayer> with WidgetsBindingObserver {
   @override
   void didUpdateWidget(ReelPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isActive && !_controller.value.isPlaying) {
+    if (widget.isActive && widget.isTabActive && !_controller.value.isPlaying) {
       _controller.play();
-    } else if (!widget.isActive && _controller.value.isPlaying) {
+    } else if ((!widget.isActive || !widget.isTabActive) && _controller.value.isPlaying) {
       _controller.pause();
     }
+
   }
 
   @override

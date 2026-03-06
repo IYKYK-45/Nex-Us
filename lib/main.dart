@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'tab_manager.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/auth/auth_screen.dart';
 import 'screens/feed/feed.dart';
@@ -15,7 +17,13 @@ void main() {
     statusBarIconBrightness: Brightness.dark,
   ));
 
-  runApp(const CampusSphereApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => TabManager(),
+      child: const CampusSphereApp(),
+    ),
+  );
+
 }
 
 class CampusSphereApp extends StatelessWidget {
