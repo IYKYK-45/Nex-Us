@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nex_us/screens/reels/reels_screen.dart';
-import 'package:nex_us/screens/chat/chat_screen.dart';
+import 'package:nex_us/screens/chat/message_page.dart';
+import 'package:nex_us/screens/profile/profile_page.dart';
+import 'package:nex_us/screens/discover/discover_screen.dart';
 
 /// FeedScreen - The main navigation hub for the app.
 /// Uses conditional rendering so Reels only builds when selected.
@@ -15,25 +17,46 @@ class FeedScreen extends StatefulWidget {
 class _FeedScreenState extends State<FeedScreen> {
   final GlobalKey<ReelsScreenState> _reelsKey = GlobalKey<ReelsScreenState>();
   int _selectedIndex = 0;
+  DateTime? _lastBackPressTime;
 
   @override
   Widget build(BuildContext context) {
     const Color brandPurple = Color(0xFF6B4EE6);
 
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          const FeedContent(),
-          // 👇 ReelsScreen is always rebuilt with the latest tab state
-          ReelsScreen(key: _reelsKey, isTabActive: _selectedIndex == 1),
-          const PlaceholderScreen(title: "Discover"),
-          const GroupsScreen(),
-          const PlaceholderScreen(title: "Events"),
-          const MessagesPage(),
-        ],
+    return WillPopScope(
+      onWillPop: () async {
+        if (_selectedIndex != 0) {
+          // 👈 If not on Feed, go back to Feed
+          setState(() => _selectedIndex = 0);
+          return false;
+        }
+
+        // 👇 If already on Feed, require double back press to exit
+        final now = DateTime.now();
+        if (_lastBackPressTime == null ||
+            now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+          _lastBackPressTime = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Press back again to exit")),
+          );
+          return false;
+        }
+        return true; // exit app
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            const FeedContent(),
+            ReelsScreen(key: _reelsKey, isTabActive: _selectedIndex == 1),
+            DiscoverPage(),
+            const GroupsScreen(),
+            const PlaceholderScreen(title: "Events"),
+            const MessagesPage(),
+          ],
+        ),
+        bottomNavigationBar: _buildDynamicBottomNav(brandPurple),
       ),
-      bottomNavigationBar: _buildDynamicBottomNav(brandPurple),
     );
   }
 
@@ -261,11 +284,30 @@ class _FeedContentState extends State<FeedContent> with AutomaticKeepAliveClient
         IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.black),
             onPressed: () {}),
-        Padding(
-          padding: const EdgeInsets.only(right: 12),
-          child: CircleAvatar(radius: 18, backgroundImage: NetworkImage(_userAvatar)),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ProfilePage(
+                  userName: "Garvit Gupta",
+                  avatar: "https://via.placeholder.com/150/6B4EE6/FFFFFF?text=GG",
+                  email: "garvit@example.com",
+                  bio: "Flutter enthusiast, CS student, loves coding & coffee ☕",
+                ),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: CircleAvatar(
+              radius: 18,
+              backgroundImage: NetworkImage(_userAvatar),
+            ),
+          ),
         ),
       ],
+
     );
   }
 

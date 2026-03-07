@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nex_us/screens/chat/one2one_screen.dart';
+import 'package:nex_us/screens/chat/chat_page.dart';
 
 class Chat {
   final String name;
