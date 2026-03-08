@@ -3,6 +3,7 @@ import 'package:nex_us/screens/reels/reels_screen.dart';
 import 'package:nex_us/screens/chat/message_page.dart';
 import 'package:nex_us/screens/profile/profile_page.dart';
 import 'package:nex_us/screens/discover/discover_screen.dart';
+import 'package:nex_us/screens/group/groups.dart';
 
 /// FeedScreen - The main navigation hub for the app.
 /// Uses conditional rendering so Reels only builds when selected.
@@ -50,7 +51,7 @@ class _FeedScreenState extends State<FeedScreen> {
             const FeedContent(),
             ReelsScreen(key: _reelsKey, isTabActive: _selectedIndex == 1),
             DiscoverPage(),
-            const GroupsScreen(),
+            const StudyGroupsPage(),
             const PlaceholderScreen(title: "Events"),
             const MessagesPage(),
           ],
