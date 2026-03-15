@@ -324,7 +324,7 @@ class _FeedContentState extends State<FeedContent> with AutomaticKeepAliveClient
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Share an update",
+            "Share an Information",
             style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
           ),
           const SizedBox(height: 12),
@@ -544,3 +544,4 @@ class GroupsScreen extends StatelessWidget {
     );
   }
 }
+

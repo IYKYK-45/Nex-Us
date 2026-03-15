@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:nex_us/screens/group/group_page.dart';
 
 
 class StudyGroupsPage extends StatefulWidget {
@@ -364,10 +365,14 @@ class _CommunityCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Joined ${data["name"]}")),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => GroupPage(groupData: data),
+                          ),
                         );
                       },
+
                       child: const Text("View Group"),
                     ),
                   ),

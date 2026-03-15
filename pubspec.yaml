@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.0
+  sdk: ">=3.11.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -32,9 +32,10 @@ dependencies:
     sdk: flutter
   video_player: ^2.9.1
   provider: ^6.0.5
-  http: ^0.13.6
-
-
+  http: ^1.2.0
+  image_picker: ^1.0.7
+  file_selector: ^1.0.0
+#  syncfusion_flutter_pdfviewer: ^25.1.42
 
 
 
@@ -42,9 +43,13 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -59,31 +64,13 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
 
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/videos/vid1.mp4
-    - assets/videos/vid2.mp4
-    - assets/videos/vid3.mp4
-    - assets/videos/vid4.mp4
-    - assets/videos/vid5.mp4
-    - assets/videos/vid6.mp4
-    - assets/videos/vid7.mp4
-    - assets/videos/vid8.mp4
-    - assets/videos/vid9.mp4
-    - assets/videos/vid10.mp4
-    - assets/videos/vid11.mp4
-    - assets/videos/vid12.mp4
-    - assets/videos/vid13.mp4
-    - assets/videos/vid14.mp4
-    - assets/videos/vid15.mp4
-    - assets/videos/vid16.mp4
-    - assets/videos/vid17.mp4
-    - assets/videos/vid18.mp4
-    - assets/videos/vid19.mp4
-    - assets/videos/vid20.mp4
+    - assets/videos/
     - assets/images/
 
   # To add assets to your application, add an assets section, like this:
